@@ -39,7 +39,7 @@ def create_app(config_name):
     redis_store = redis.StrictRedis(host=config.REDIS_HOST, port=config.REDIS_PORT, decode_responses=True)
 
     # 使用CSRFProtect,对app做请求保护
-    CSRFProtect(app)
+    # CSRFProtect(app)
 
     # 使用Session,关联app,指定存储位置
     Session(app)
