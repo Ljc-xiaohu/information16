@@ -199,31 +199,44 @@ def sms_code():
         return jsonify(errno=RET.DATAERR,errmsg="手机号格式错误")
 
     # 4.根据传入的图片验证码编号获取redis中的图片验证码A
-    redis_image_code = redis_store.get("image_code:%s"%image_code_id)
+    try:
+        redis_image_code = redis_store.get("image_code:%s" % image_code_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="获取图片验证码失败")
 
     # 5.判断图片验证码A, 是否过期
     if not redis_image_code:
         return jsonify(errno=RET.NODATA,errmsg="图片验证码已过期")
 
     # 6.删除redis中的图片验证码A
-    redis_store.delete("image_code:%s"%image_code_id)
+    try:
+        redis_store.delete("image_code:%s" % image_code_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="删除图片验证码异常")
 
     # 7.判断传入的验证码B, 和redis中的验证码A是否相等
-    if image_code != redis_image_code:
+    if image_code.lower() != redis_image_code.lower():
         return jsonify(errno=RET.DATAERR,errmsg="图片验证码填写错误")
 
     # 8.生成短信验证码
     sms_code = "%06d"%random.randint(0,999999)
+    current_app.logger.error("短信验证码是 = %s"%sms_code)
 
     # 9.调用CCP发送, 并判断
-    ccp = CCP()
-    result = ccp.send_template_sms(mobile,[sms_code,constants.SMS_CODE_REDIS_EXPIRES/60],1)
-
-    if result == -1:
-        return jsonify(errno=RET.DATAERR,errmsg="短信发送失败")
+    # ccp = CCP()
+    # result = ccp.send_template_sms(mobile,[sms_code,constants.SMS_CODE_REDIS_EXPIRES/60],1)
+    #
+    # if result == -1:
+    #     return jsonify(errno=RET.DATAERR,errmsg="短信发送失败")
 
     # 10.将短信验证码保存一份到redis
-    redis_store.set("sms_code:%s"%mobile,sms_code,constants.SMS_CODE_REDIS_EXPIRES)
+    try:
+        redis_store.set("sms_code:%s" % mobile, sms_code, constants.SMS_CODE_REDIS_EXPIRES)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="保存短信异常")
 
     # 11.返回响应
     return jsonify(errno=RET.OK,errmsg="短信发送成功")
