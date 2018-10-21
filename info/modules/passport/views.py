@@ -14,6 +14,22 @@ from info.utils.response_code import RET
 from . import passport_blue
 from info.utils.captcha.captcha import captcha
 
+#功能描述: 退出登陆
+# 请求路径: /passport/logout
+# 请求方式: POST
+# 请求参数: 无
+# 返回值: errno, errmsg
+@passport_blue.route('/logout', methods=['POST'])
+def logout():
+    #1.清除session
+    #session.clear()
+    session.pop("user_id",None)
+    session.pop("nick_name",None)
+    session.pop("mobile",None)
+
+    #2.返回响应
+    return jsonify(errno=RET.OK,errmsg="退出成功")
+
 #功能描述: 登陆用户
 # 请求路径: /passport/login
 # 请求方式: POST
@@ -56,7 +72,7 @@ def login():
 
     # 6.将用的登陆信息,保存到session
     session["user_id"] = user.id
-    session["user_id"] = user.nick_name
+    session["nick_name"] = user.nick_name
     session["mobile"] = user.mobile
 
     # 7.返回响应

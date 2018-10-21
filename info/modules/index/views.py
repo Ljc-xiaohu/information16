@@ -1,4 +1,7 @@
+from flask import session
+
 from info import redis_store
+from info.models import User
 from . import index_blu
 from flask import render_template,current_app
 
@@ -8,24 +11,24 @@ from flask import render_template,current_app
 @index_blu.route('/')
 def hello_world():
 
-    # 测试redis,存取数据
-    redis_store.set("name","laowang")
-    print(redis_store.get("name"))
-    #
-    # session["age"] = "13"
-    # print(session.get("age"))
+    # 1.取出session,中的用户编号
+    user_id = session.get("user_id")
 
-    # logging.debug("调试信息1")
-    # logging.info("详细信息1")
-    # logging.warning("警告信息1")
-    # logging.error("错误信息1")
+    # 2.获取用户对象
+    user = None
+    if user_id:
+        try:
+            user = User.query.get(user_id)
+        except Exception as e:
+            current_app.logger.error(e)
 
-    # current_app.logger.debug("调试信息2")
-    # current_app.logger.info("详细信息2")
-    # current_app.logger.warning("警告信息2")
-    # current_app.logger.error("错误信息2")
+    # 3.拼接用户数据渲染页面
+    data = {
+        # 如果user不为空,返回左边的内容, 为空返回右边内容
+        "user_info":user.to_dict() if user else ""
+    }
 
-    return render_template("news/index.html")
+    return render_template("news/index.html",data=data)
 
 #处理网站logo
 #每个浏览器在访问服务器的时候,会自动向该服务器发送GET请求,地址是:/favicon.ico
