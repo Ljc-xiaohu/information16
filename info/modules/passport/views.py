@@ -1,5 +1,6 @@
 import random
 import re
+from datetime import datetime
 
 from flask import json
 from flask import make_response
@@ -75,6 +76,18 @@ def login():
     session["user_id"] = user.id
     session["nick_name"] = user.nick_name
     session["mobile"] = user.mobile
+
+    # 6.1记录用户最后一次的登陆时间
+    user.last_login = datetime.now()
+
+    # config.py中的 SQLALCHEMY_COMMIT_ON_TEARDOWN = True （推荐使用这行代码，原因在于下面的带过于冗余）
+    #    与
+    #   try:
+    #       db.session.commit()
+    #   except Exception as e:
+    #       current_app.logger.error(e)
+    #       return jsonify(errno=RET.DBERR,errmsg="更新登陆时间失败")
+    #   等价
 
     # 7.返回响应
     return jsonify(errno=RET.OK,errmsg="登陆成功")
