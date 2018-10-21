@@ -92,6 +92,9 @@ def register():
     # 10.返回响应
     return jsonify(errno=RET.OK,errmsg="注册成功")
 
+    # 在数据库中查询有没有注册select * from info_user;
+    # 用select * from info_user\G;是列表查询的，方便查看
+
 
 #功能: 获取短信验证码
 # 请求路径: /passport/sms_code
