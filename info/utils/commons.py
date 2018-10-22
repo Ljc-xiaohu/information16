@@ -15,6 +15,8 @@ def index_class(index):
         return ""
 
 #用户登陆的装饰器
+# 出现错误：View function mapping is overwriting an existing endpoint function，
+#   加上这句代码便可以解决@wraps(view_func)
 def user_login_data(view_func):
     @wraps(view_func)
     def wrapper(*args,**kwargs):
