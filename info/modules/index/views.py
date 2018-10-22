@@ -1,18 +1,14 @@
-from flask import request
-from flask import session, jsonify
-
-from info import redis_store
 from info.models import User, News, Category
 from info.utils.response_code import RET
 from . import index_blu
-from flask import render_template,current_app
+from flask import render_template,current_app,session, jsonify,request
 
 #功能描述: 首页新闻列表获取
 # 请求路径: /newslist
 # 请求方式: GET
 # 请求参数: cid,page,per_page
 # 返回值: data数据
-@index_blu.route('/news_list')
+@index_blu.route('/newslist')
 def news_list():
     """
     1.获取参数
@@ -37,28 +33,35 @@ def news_list():
         per_page = 10
 
     # 3.分页查询
-    #     下面代码等价
+    #     下面代码等价,一个没换行，一个换行了,太长了,在.后面敲enter键便得到\
     #     paginate = News.query.filter(News.category_id == cid).order_by(News.create_time.desc()).paginate(page, per_page, False)
-        try:
-            paginate = News.query.filter(News.category_id == cid).\
-                order_by(News.create_time.desc()).\
-                paginate(page,per_page,False)
-        except Exception as e:
-            current_app.logger.error(e)
-            return jsonify(errno=RET.DBERR,errmsg="获取新闻失败")
+    try:
+        # paginate = News.query.filter(News.category_id == cid).order_by(News.create_time.desc()).paginate(page, per_page,
+        #                                                                                                  False)
+
+        # 判断是否cid != 1, 不是最新
+        condition = ""
+        if cid != "1":
+            condition = News.category_id == cid
+        paginate = News.query.filter(condition).\
+            order_by(News.create_time.desc()).\
+            paginate(page,per_page,False)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="获取新闻失败")
 
     # 4.取出分页对象中的属性,总页数,当前页,当前页对象
-        totalPage = paginate.pages
-        currentPage = paginate.page
-        items = paginate.items
+    totalPage = paginate.pages
+    currentPage = paginate.page
+    items = paginate.items
 
     # 5.将当前页对象列表,转成字典列表
-        newsList = []
-        for item in items:
-            newsList.append(item.to_dict())
+    newsList = []
+    for item in items:
+        newsList.append(item.to_dict())
 
     # 6.返回响应
-        return jsonify(errno=RET.OK,errmsg="获取成功",totalPage=totalPage,currentPage=currentPage,newsList=newsList)
+    return jsonify(errno=RET.OK,errmsg="获取成功",totalPage=totalPage,currentPage=currentPage,newsList=newsList)
 
 
 @index_blu.route('/')
