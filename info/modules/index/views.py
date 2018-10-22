@@ -1,7 +1,8 @@
-from flask import session
+from flask import session, jsonify
 
 from info import redis_store
-from info.models import User
+from info.models import User, News
+from info.utils.response_code import RET
 from . import index_blu
 from flask import render_template,current_app
 
@@ -22,10 +23,23 @@ def hello_world():
         except Exception as e:
             current_app.logger.error(e)
 
+    # 2.1 热门新闻,按照新闻的点击量量,查询前十条新闻
+    try:
+        news_list = News.query.order_by(News.clicks.desc()).limit(10).all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="获取新闻失败")
+
+    # 2.2 将新闻列表对象,字典列表对象
+    click_news_list = []
+    for news in news_list:
+        click_news_list.append(news.to_dict())
+
     # 3.拼接用户数据渲染页面
     data = {
         # 如果user不为空,返回左边的内容, 为空返回右边内容
-        "user_info":user.to_dict() if user else ""
+        "user_info":user.to_dict() if user else "",
+        "click_news_list":click_news_list
     }
 
     return render_template("news/index.html",data=data)
