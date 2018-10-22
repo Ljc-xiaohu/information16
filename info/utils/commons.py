@@ -2,7 +2,7 @@
 
 #自定义过滤器,实现颜色过滤
 from flask import session,current_app,g
-
+from functools import wraps
 
 def index_class(index):
     if index == 1:
@@ -16,6 +16,7 @@ def index_class(index):
 
 #用户登陆的装饰器
 def user_login_data(view_func):
+    @wraps(view_func)
     def wrapper(*args,**kwargs):
 
         # 取出sessioin,用户编号

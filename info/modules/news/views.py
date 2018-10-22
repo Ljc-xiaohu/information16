@@ -1,8 +1,74 @@
+from flask import request
+
 from info.models import News, User
 from info.utils.commons import user_login_data
 from info.utils.response_code import RET
 from . import news_blue
 from flask import render_template,current_app, jsonify,abort,session,g
+
+# 功能描述: 收藏取消收藏
+# 请求路径: /news/news_collect
+# 请求方式: POST
+# 请求参数:news_id,action, g.user
+# 返回值: errno,errmsg
+@news_blue.route('/news_collect', methods=['POST'])
+@user_login_data
+def news_collect():
+    """
+    1. 判断用户登陆状态
+    2. 获取参数
+    3. 校验参数,为空校验
+    4. 判断操作类型
+    5. 通过新闻编号取出新闻对象
+    6. 判断新闻对象是否存在
+    7. 根据操作类型,收藏,取消操作
+    8. 返回响应
+    :return:
+    """
+
+    # 1. 判断用户登陆状态
+    if not g.user:
+        return jsonify(errno=RET.NODATA,errmsg="用户未登录")
+
+    # 2. 获取参数
+    news_id = request.json.get("news_id")
+    action = request.json.get("action")
+
+    # 3. 校验参数,为空校验
+    if not all([news_id,action]):
+        return jsonify(errno=RET.PARAMERR,errmsg="参数不全")
+
+    # 4. 判断操作类型
+    if not action in ["collect","cancel_collect"]:
+        return jsonify(errno=RET.DATAERR,errmsg="操作类型有误")
+
+    # 5. 通过新闻编号取出新闻对象
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="新闻获取失败")
+
+    # 6. 判断新闻对象是否存在
+    if not news:
+        return jsonify(errno=RET.NODATA,errmsg="新闻不存在")
+    try:
+        # 7. 根据操作类型,收藏,取消操作
+        if action == "collect":
+            # 判断用户是否已经对该新闻收藏了
+            if not news in g.user.collection_news:
+                g.user.collection_news.append(news)
+        else:
+            # 判断用户是否已经对该新闻收藏了
+            if news in g.user.collection_news:
+                g.user.collection_news.remove(news)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="操作失败")
+
+    # 8. 返回响应
+    return jsonify(errno=RET.OK,errmsg="操作成功")
+
 
 # 获取新闻详情
 # 请求路径: /news/<int:news_id>
