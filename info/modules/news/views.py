@@ -37,22 +37,18 @@ def news_blue(news_id):
     for click_news in news_list:
         click_news_list.append(click_news.to_dict())
 
-    # 2.3.取出session,中的用户编号
-    # user_id = session.get("user_id")
+    # 2.3 判断用户是否收藏了该新闻
+    is_collected = False
+    if g.user and news in g.user.collection_news:
+        is_collected = True
 
-    # 2.4.获取用户对象
-    # user = None
-    # if user_id:
-    #     try:
-    #         user = User.query.get(user_id)
-    #     except Exception as e:
-    #         current_app.logger.error(e)
 
     # 3.携带新闻数据,到模板页面显示
     data = {
         "news":news.to_dict(),
         "click_news_list":click_news_list,
         "user_info": g.user.to_dict() if g.user else "",
+        "is_collected":is_collected
     }
 
     return render_template("news/detail.html",data=data)
