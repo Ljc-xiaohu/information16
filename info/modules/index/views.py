@@ -1,7 +1,8 @@
 from info.models import User, News, Category
+from info.utils.commons import user_login_data
 from info.utils.response_code import RET
 from . import index_blu
-from flask import render_template,current_app,session, jsonify,request
+from flask import render_template,current_app,session,jsonify,request,g
 
 #功能描述: 首页新闻列表获取
 # 请求路径: /newslist
@@ -85,18 +86,30 @@ def news_list():
 
 
 @index_blu.route('/')
-def hello_world():
+@user_login_data
+def show_index():
 
+    # 上面装饰器的流程：
+    # 1.首先在浏览器访问跟路径/，即 http://127.0.0.1:5000
+    # 2.进入到@user_login_data，这个装饰起内部，show_index作为参数传给view_func,
+    #   执行wrapper方法后，把其中的user添加到g对象中
+    # 3.执行代码return view_func(*args,**kwargs)后，返回到show_index方法,
+    #   原因是view_func(*args,**kwargs)，即一个函数加括号便是执行这个函数[例如fun()],
+    #   也就是执行show_index方法
+    # 4.执行方法show_index，便可以使用上面的g.user了,
+    #   执行完return render_template("news/index.html",data=data)后，g对象便自动销毁了
+
+    # 用了@user_login_data，这个装饰器之后，下面的代码便可以注释了
     # 1.取出session,中的用户编号
-    user_id = session.get("user_id")
+    # user_id = session.get("user_id")
 
     # 2.获取用户对象
-    user = None
-    if user_id:
-        try:
-            user = User.query.get(user_id)
-        except Exception as e:
-            current_app.logger.error(e)
+    # user = None
+    # if user_id:
+    #     try:
+    #         user = User.query.get(user_id)
+    #     except Exception as e:
+    #         current_app.logger.error(e)
 
     # 2.1 热门新闻,按照新闻的点击量量,查询前十条新闻
     try:
@@ -124,7 +137,7 @@ def hello_world():
     # 3.拼接用户数据渲染页面
     data = {
         # 如果user不为空,返回左边的内容, 为空返回右边内容
-        "user_info":user.to_dict() if user else "",
+        "user_info":g.user.to_dict() if g.user else "",
         "click_news_list":click_news_list,
         "categories":category_list
     }
