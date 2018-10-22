@@ -22,9 +22,22 @@ def news_blue(news_id):
     if not news:
         abort(404)
 
+    # 2.1 热门新闻,按照新闻的点击量量,查询前十条新闻
+    try:
+        news_list = News.query.order_by(News.clicks.desc()).limit(8).all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="获取新闻失败")
+
+    # 2.2 将新闻列表对象,字典列表对象
+    click_news_list = []
+    for news in news_list:
+        click_news_list.append(news.to_dict())
+
     # 3.携带新闻数据,到模板页面显示
     data = {
-        "news":news.to_dict()
+        "news":news.to_dict(),
+        "click_news_list":click_news_list
     }
 
     return render_template("news/detail.html",data=data)
