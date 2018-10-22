@@ -32,9 +32,10 @@ def news_blue(news_id):
         return jsonify(errno=RET.DBERR,errmsg="获取新闻失败")
 
     # 2.2 将新闻列表对象,字典列表对象
+    # click_news 不要与上面的news 重名，不然会覆盖原来的名字
     click_news_list = []
-    for news in news_list:
-        click_news_list.append(news.to_dict())
+    for click_news in news_list:
+        click_news_list.append(click_news.to_dict())
 
     # 2.3.取出session,中的用户编号
     # user_id = session.get("user_id")
