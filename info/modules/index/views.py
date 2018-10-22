@@ -33,17 +33,37 @@ def news_list():
         per_page = 10
 
     # 3.分页查询
-    #     下面代码等价,一个没换行，一个换行了,太长了,在.后面敲enter键便得到\
+    #     下面代码等价,一个没换行，一个换行了,太长了,在.后面敲Enter键便得到\
     #     paginate = News.query.filter(News.category_id == cid).order_by(News.create_time.desc()).paginate(page, per_page, False)
-    try:
+
         # paginate = News.query.filter(News.category_id == cid).order_by(News.create_time.desc()).paginate(page, per_page,
         #                                                                                                  False)
+    # 第一种写法
+        # 判断是否cid != 1, 不是最新
+        # condition = ""
+        # if cid != "1":
+        #     condition = (News.category_id == cid)
+        # paginate = News.query.filter(condition).\
+        #     order_by(News.create_time.desc()).\
+        #     paginate(page,per_page,False)
 
         # 判断是否cid != 1, 不是最新
-        condition = ""
+    """
+    # 第二种写法（推荐）
+    """
+    # 拆包，例如filters = [1,2]
+    # a,b = *filters
+    # 结果便是a=1,b=2
+    # 这样写的好处是 ：可以加多个条件
+    # if cid != "1":
+    #     filters.append(News.category_id == cid)
+    # if cid != "2":
+    #     filters.append(News.category_id == cid)
+    try:
+        filters = []
         if cid != "1":
-            condition = News.category_id == cid
-        paginate = News.query.filter(condition).\
+            filters.append(News.category_id == cid)
+        paginate = News.query.filter(*filters).\
             order_by(News.create_time.desc()).\
             paginate(page,per_page,False)
     except Exception as e:
