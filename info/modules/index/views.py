@@ -60,6 +60,28 @@ def news_list():
     #     filters.append(News.category_id == cid)
     # if cid != "2":
     #     filters.append(News.category_id == cid)
+    """
+    其中的News.category_id == cid，表示一个结果集或者对象，
+    一般来说，a==b是True和False，而News.category_id == cid不是，
+    原因在于object基类中的__eq__方法没有被重写
+    举例如下：
+    In [10]: class Person(object):
+    ...:     pass
+    ...:
+    In [11]: p1 = Person()
+    In [12]: p2 = Person()
+    In [13]: p1 == p2
+    Out[13]: False
+    In [14]: class Student(object):
+        ...:     def __eq__(self,obj):
+        ...:         return "hahaha"
+        ...:
+    In [15]: s1 = Student()
+    In [16]: s2 = Student()
+    In [17]: s1 == s2
+    Out[17]: 'hahaha'
+    """
+
     try:
         filters = []
         if cid != "1":
