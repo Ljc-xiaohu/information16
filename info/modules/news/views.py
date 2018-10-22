@@ -1,7 +1,7 @@
-from info.models import News
+from info.models import News, User
 from info.utils.response_code import RET
 from . import news_blue
-from flask import render_template,current_app, jsonify,abort
+from flask import render_template,current_app, jsonify,abort,session
 
 # 获取新闻详情
 # 请求路径: /news/<int:news_id>
@@ -34,10 +34,22 @@ def news_blue(news_id):
     for news in news_list:
         click_news_list.append(news.to_dict())
 
+    # 2.3.取出session,中的用户编号
+    user_id = session.get("user_id")
+
+    # 2.4.获取用户对象
+    user = None
+    if user_id:
+        try:
+            user = User.query.get(user_id)
+        except Exception as e:
+            current_app.logger.error(e)
+
     # 3.携带新闻数据,到模板页面显示
     data = {
         "news":news.to_dict(),
-        "click_news_list":click_news_list
+        "click_news_list":click_news_list,
+        "user_info": user.to_dict() if user else "",
     }
 
     return render_template("news/detail.html",data=data)
