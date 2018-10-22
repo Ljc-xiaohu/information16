@@ -55,6 +55,10 @@ def create_app(config_name):
     from info.modules.passport import passport_blue
     app.register_blueprint(passport_blue)
 
+    # 将新闻蓝图对象news_blue注册到app中
+    from info.modules.news import news_blue
+    app.register_blueprint(news_blue)
+
     # 将过滤器,添加到默认过滤器列表中
     app.add_template_filter(index_class,"index_class")
 
