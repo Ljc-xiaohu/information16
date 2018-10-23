@@ -82,6 +82,7 @@ $(function(){
 
         // 评论提交
     $(".comment_form").submit(function (e) {
+            // 禁止表单的默认行为，阻止提交到form的action中
             e.preventDefault();
             // 获取当前标签中的,新闻编号,评论内容
             var news_id = $(this).attr('data-newsid')

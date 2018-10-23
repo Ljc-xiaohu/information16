@@ -35,8 +35,8 @@ def news_comment():
     parent_id = request.json.get("parent_id")
 
     # - 3.校验参数,为空检验
-    if not all([news_id, content, parent_id]):
-        jsonify(errno=RET.NODATA, errmsg="参数不全")
+    if not all([news_id, content]):
+        return jsonify(errno=RET.NODATA, errmsg="参数不全")
 
     # - 4.根据新闻编号取出新闻对象
     try:
@@ -66,7 +66,7 @@ def news_comment():
         return jsonify(errno=RET.DBERR, errmsg="评论失败")
 
     # - 8.返回响应
-    return jsonify(errno=RET.OK, errmsg="评论成功")
+    return jsonify(errno=RET.OK, errmsg="评论成功",data=comment.to_dict())
 
 
 # 功能描述: 收藏取消收藏
