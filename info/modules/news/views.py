@@ -225,7 +225,7 @@ def news_collect():
 # 返回值: detail.html页面, 用户data字典数据
 @news_blue.route('/<int:news_id>')
 @user_login_data
-def news_blue(news_id):
+def news_detail(news_id):
     # 1.根据新闻编号获取,新闻对象
     try:
         news = News.query.get(news_id)
