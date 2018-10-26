@@ -35,7 +35,7 @@ def user_follow():
 
     # - 3.分页查询
     try:
-        paginate = g.user.followed.paginate(page, 2, False)
+        paginate = g.user.followed.paginate(page, 4, False)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="获取新闻失败")
