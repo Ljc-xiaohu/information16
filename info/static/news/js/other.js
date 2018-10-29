@@ -93,7 +93,7 @@ function getNewsList(page) {
         "p": page,
         "user_id": query["id"]
     }
-    /*
+
     $.get("/user/other_news_list", params, function (resp) {
         if (resp.errno == "0") {
             // 先清空原有的数据
@@ -111,5 +111,5 @@ function getNewsList(page) {
             alert(resp.errmsg)
         }
     })
-    */
+
 }
