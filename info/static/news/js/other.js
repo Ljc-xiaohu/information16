@@ -19,7 +19,7 @@ $(function(){
             "action": "follow",
             "user_id": user_id
         }
-        /*
+
         $.ajax({
             url: "/news/followed_user",
             type: "post",
@@ -45,7 +45,7 @@ $(function(){
                 }
             }
         })
-        */
+
     })
 
     // TODO 取消关注当前作者
@@ -55,7 +55,7 @@ $(function(){
             "action": "unfollow",
             "user_id": user_id
         }
-        /*
+
         $.ajax({
             url: "/news/followed_user",
             type: "post",
@@ -81,7 +81,7 @@ $(function(){
                 }
             }
         })
-        */
+
     })
 })
 
