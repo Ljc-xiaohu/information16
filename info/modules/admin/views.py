@@ -1,8 +1,77 @@
+import time
+from datetime import datetime
+
 from flask import render_template, request, current_app, session, redirect, g
 
 from info import user_login_data
 from info.models import User
 from . import admin_blue
+
+
+# 用户统计
+# 请求路径: /admin/user_count
+# 请求方式: GET
+# 请求参数: 无
+# 返回值:渲染页面user_count.html,字典数据
+@admin_blue.route('/user_count')
+def user_count():
+    """
+    - 1.查询总人数,不包含管理员
+    - 2.查询月活人数
+    - 3.查询日活人数
+    - 4.时间段内的, 活跃人数
+    - 5.携带数据,渲染页面
+    :return:
+    """
+    # - 1.查询总人数,不包含管理员
+    try:
+        total_count = User.query.filter(User.is_admin == False).count()
+    except Exception as e:
+        current_app.logger.error(e)
+
+    # - 2.查询月活人数
+    cal = time.localtime()
+    try:
+
+        # 2.1本月1号的0点, 的字符串表示
+        month_startTime_str = "%d-%d-01" % (cal.tm_year, cal.tm_mon)  # 2018-10-01
+        # strptime()==> string parse time, 参数1: 表示时间字符串,  参数2: 格式
+        month_startTime_date = datetime.strptime(month_startTime_str, "%Y-%m-%d")
+
+        # 2.2 此时的时间
+        month_endTime_date = datetime.now()
+
+        # 2.3查询, 时间段内的人数
+        month_count = User.query.filter(User.last_login >= month_startTime_date, User.last_login <= month_endTime_date,
+                                        User.is_admin == False).count()
+    except Exception as e:
+        current_app.logger.error(e)
+
+    # - 3.查询日活人数
+    try:
+
+        # 3.1本日的0点, 的字符串表示
+        day_startTime_str = "%d-%d-%d" % (cal.tm_year, cal.tm_mon, cal.tm_mday)  # 2018-10-01
+        # strptime()==> string parse time, 参数1: 表示时间字符串,  参数2: 格式
+        day_startTime_date = datetime.strptime(day_startTime_str, "%Y-%m-%d")
+
+        # 3.2 此时的时间
+        day_endTime_date = datetime.now()
+
+        # 3.3查询, 时间段内的人数
+        day_count = User.query.filter(User.last_login >= day_startTime_date, User.last_login <= day_endTime_date,
+                                      User.is_admin == False).count()
+    except Exception as e:
+        current_app.logger.error(e)
+
+    # - 4.时间段内的, 活跃人数
+    # - 5.携带数据,渲染页面
+    data = {
+        "total_count": total_count,
+        "month_count": month_count,
+        "day_count": day_count
+    }
+    return render_template("admin/user_count.html", data=data)
 
 
 # 显示管理员首页页面
