@@ -1,10 +1,11 @@
-from flask import render_template, request, current_app, session, redirect,g
+from flask import render_template, request, current_app, session, redirect, g
 
 from info import user_login_data
 from info.models import User
 from . import admin_blue
 
-#显示管理员首页页面
+
+# 显示管理员首页页面
 # 请求路径: /admin/index
 # 请求方式: GET
 # 请求参数: 无
@@ -13,7 +14,7 @@ from . import admin_blue
 @user_login_data
 def admin_index():
     admin = g.user.to_dict() if g.user else ""
-    return render_template("admin/index.html",admin=admin)
+    return render_template("admin/index.html", admin=admin)
 
 
 # 显示登录页面
@@ -35,6 +36,11 @@ def admin_login():
     """
     # - 1.判断请求方式,如果是GET请求,直接返回登陆页面
     if request.method == 'GET':
+
+        # 判断管理员是否,已经登陆过
+        if session.get("is_admin"):
+            return redirect("/admin/index")
+
         return render_template("admin/login.html")
 
     # - 2.如果是POST,获取参数

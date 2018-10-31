@@ -4,7 +4,7 @@ from datetime import datetime
 
 from flask import json
 from flask import make_response
-from flask import request,current_app,jsonify
+from flask import request, current_app, jsonify
 from flask import session
 
 from info import constants, db
@@ -15,23 +15,26 @@ from info.utils.response_code import RET
 from . import passport_blue
 from info.utils.captcha.captcha import captcha
 
-#功能描述: 退出登陆
+
+# 功能描述: 退出登陆
 # 请求路径: /passport/logout
 # 请求方式: POST
 # 请求参数: 无
 # 返回值: errno, errmsg
 @passport_blue.route('/logout', methods=['POST'])
 def logout():
-    #1.清除session
-    #session.clear()
-    session.pop("user_id",None)
-    session.pop("nick_name",None)
-    session.pop("mobile",None)
+    # 1.清除session
+    # session.clear()
+    session.pop("user_id", None)
+    session.pop("nick_name", None)
+    session.pop("mobile", None)
+    session.pop("is_admin", None)
 
-    #2.返回响应
-    return jsonify(errno=RET.OK,errmsg="退出成功")
+    # 2.返回响应
+    return jsonify(errno=RET.OK, errmsg="退出成功")
 
-#功能描述: 登陆用户
+
+# 功能描述: 登陆用户
 # 请求路径: /passport/login
 # 请求方式: POST
 # 请求参数: mobile,password
@@ -53,24 +56,24 @@ def login():
     password = request.json.get("password")
 
     # 2.校验参数,为空校验
-    if not all([mobile,password]):
-        return jsonify(errno=RET.PARAMERR,errmsg="参数不完整")
+    if not all([mobile, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
 
     # 3.根据手机号,查询用户对象
     try:
         user = User.query.filter(User.mobile == mobile).first()
     except Exception as e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR,errmsg="用户查询失败")
+        return jsonify(errno=RET.DBERR, errmsg="用户查询失败")
 
     # 4.判断用户对象是否存在
     if not user:
-        return jsonify(errno=RET.NODATA,errmsg="该用户不存在")
+        return jsonify(errno=RET.NODATA, errmsg="该用户不存在")
 
     # 5.判断密码是否正确
     # if user.password_hash != password:
     if not user.check_passowrd(password):
-        return jsonify(errno=RET.DATAERR,errmsg="密码错误")
+        return jsonify(errno=RET.DATAERR, errmsg="密码错误")
 
     # 6.将用的登陆信息,保存到session
     session["user_id"] = user.id
@@ -90,10 +93,10 @@ def login():
     #   等价
 
     # 7.返回响应
-    return jsonify(errno=RET.OK,errmsg="登陆成功")
+    return jsonify(errno=RET.OK, errmsg="登陆成功")
 
 
-#功能描述: 注册用户
+# 功能描述: 注册用户
 # 请求路径: /passport/register
 # 请求方式: POST
 # 请求参数: mobile, sms_code,password
@@ -125,34 +128,34 @@ def register():
     password = dict_data.get("password")
 
     # 2.校验参数,为空校验
-    if not all([mobile,sms_code,password]):
-        return jsonify(errno=RET.PARAMERR,errmsg="参数不完整")
+    if not all([mobile, sms_code, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
 
     # 3.手机号格式校验
-    if not re.match("1[356789]\d{9}",mobile):
-        return jsonify(errno=RET.DATAERR,errmsg="手机号格式有误")
+    if not re.match("1[356789]\d{9}", mobile):
+        return jsonify(errno=RET.DATAERR, errmsg="手机号格式有误")
 
     # 4.通过手机号取出redis中的短信验证码
     try:
-        redis_sms_code = redis_store.get("sms_code:%s"%mobile)
+        redis_sms_code = redis_store.get("sms_code:%s" % mobile)
     except Exception as e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR,errmsg="获取短信验证码异常")
+        return jsonify(errno=RET.DBERR, errmsg="获取短信验证码异常")
 
     # 5.判断短信验证码是否过期
     if not redis_sms_code:
-        return jsonify(errno=RET.NODATA,errmsg="短信验证码过期")
+        return jsonify(errno=RET.NODATA, errmsg="短信验证码过期")
 
     # 6.删除redis中的短信验证码
     try:
-        redis_store.delete("sms_code:%s"%mobile)
+        redis_store.delete("sms_code:%s" % mobile)
     except Exception as e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR,errmsg="删除短信验证码异常")
+        return jsonify(errno=RET.DBERR, errmsg="删除短信验证码异常")
 
     # 7.校验传入的短信验证码和,redis中的是否相等
     if sms_code != redis_sms_code:
-        return jsonify(errno=RET.DATAERR,errmsg="短信验证码填写错误")
+        return jsonify(errno=RET.DATAERR, errmsg="短信验证码填写错误")
 
     # 8.创建用户对象,设置属性
     user = User()
@@ -169,16 +172,16 @@ def register():
     except Exception as e:
         current_app.logger.error(e)
         db.session.rollback()
-        return jsonify(errno=RET.DBERR,errmsg="用户注册失败")
+        return jsonify(errno=RET.DBERR, errmsg="用户注册失败")
 
     # 10.返回响应
-    return jsonify(errno=RET.OK,errmsg="注册成功")
+    return jsonify(errno=RET.OK, errmsg="注册成功")
 
     # 在数据库中查询有没有注册select * from info_user;
     # 用select * from info_user\G;是列表查询的，方便查看
 
 
-#功能: 获取短信验证码
+# 功能: 获取短信验证码
 # 请求路径: /passport/sms_code
 # 请求方式: POST
 # 请求参数: mobile, image_code,image_code_id
@@ -207,23 +210,23 @@ def sms_code():
     image_code_id = dict_data.get("image_code_id")
 
     # 2.校验参数, 为空检验
-    if not all([mobile,image_code,image_code_id]):
-        return jsonify(errno=RET.PARAMERR,errmsg="参数不能为空")
+    if not all([mobile, image_code, image_code_id]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不能为空")
 
     # 3.校验手机号格式
-    if not re.match("1[356789]\d{9}",mobile):
-        return jsonify(errno=RET.DATAERR,errmsg="手机号格式错误")
+    if not re.match("1[356789]\d{9}", mobile):
+        return jsonify(errno=RET.DATAERR, errmsg="手机号格式错误")
 
     # 4.根据传入的图片验证码编号获取redis中的图片验证码A
     try:
         redis_image_code = redis_store.get("image_code:%s" % image_code_id)
     except Exception as e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR,errmsg="获取图片验证码失败")
+        return jsonify(errno=RET.DBERR, errmsg="获取图片验证码失败")
 
     # 5.判断图片验证码A, 是否过期
     if not redis_image_code:
-        return jsonify(errno=RET.NODATA,errmsg="图片验证码已过期")
+        return jsonify(errno=RET.NODATA, errmsg="图片验证码已过期")
 
     # 6.删除redis中的图片验证码A
     try:
@@ -234,11 +237,11 @@ def sms_code():
 
     # 7.判断传入的验证码B, 和redis中的验证码A是否相等
     if image_code.lower() != redis_image_code.lower():
-        return jsonify(errno=RET.DATAERR,errmsg="图片验证码填写错误")
+        return jsonify(errno=RET.DATAERR, errmsg="图片验证码填写错误")
 
     # 8.生成短信验证码
-    sms_code = "%06d"%random.randint(0,999999)
-    current_app.logger.error("短信验证码是 = %s"%sms_code)
+    sms_code = "%06d" % random.randint(0, 999999)
+    current_app.logger.error("短信验证码是 = %s" % sms_code)
 
     # 9.调用CCP发送, 并判断
     # ccp = CCP()
@@ -252,18 +255,17 @@ def sms_code():
         redis_store.set("sms_code:%s" % mobile, sms_code, constants.SMS_CODE_REDIS_EXPIRES)
     except Exception as e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR,errmsg="保存短信异常")
+        return jsonify(errno=RET.DBERR, errmsg="保存短信异常")
 
     # 11.返回响应
-    return jsonify(errno=RET.OK,errmsg="短信发送成功")
+    return jsonify(errno=RET.OK, errmsg="短信发送成功")
 
 
-
-#功能:获取图片验证码
-#请求地址: /passport/image_code
-#请求方式: GET
-#请求参数: cur_id, pre_id
-#返回值: 图片验证码
+# 功能:获取图片验证码
+# 请求地址: /passport/image_code
+# 请求方式: GET
+# 请求参数: cur_id, pre_id
+# 返回值: 图片验证码
 @passport_blue.route('/image_code')
 def image_code():
     """
@@ -284,17 +286,17 @@ def image_code():
         return "必须要传递验证码编号"
 
     # 3.生成图片验证码
-    name,text,image_data = captcha.generate_captcha()
+    name, text, image_data = captcha.generate_captcha()
     print(text)
 
     try:
         # 4.判断是否有上个图片验证码编号
         if pre_id:
-            redis_store.delete("image_code:%s"%pre_id)
+            redis_store.delete("image_code:%s" % pre_id)
 
         # 5.保存一份到redis
         # redis_store.setex()跟redis_store.set()等价
-        redis_store.set("image_code:%s"%cur_id,text,constants.IMAGE_CODE_REDIS_EXPIRES)
+        redis_store.set("image_code:%s" % cur_id, text, constants.IMAGE_CODE_REDIS_EXPIRES)
     except Exception as e:
         current_app.logger.error(e)
         return "redis操作图片失败"
