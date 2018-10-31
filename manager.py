@@ -15,6 +15,9 @@
 6.数据库迁移配置
 
 """""
+import random
+from datetime import datetime, timedelta
+
 from info import create_app, db, models  # 导入目的,只是为了让当前项目知道有该文件的存在
 from flask_script import Manager
 from flask_migrate import MigrateCommand, Migrate
@@ -59,6 +62,45 @@ def create_superuser(username, password):
         return "注册失败"
 
     return "注册成功"
+
+
+# 添加测试用户
+# @manager.option 装饰方法,可以通过命令行的方式调用
+#   输入下列代码，例如：
+#   python manager.py add_test_user -t testing
+#   运行玩这行代码，会返回  添加成功
+# 参数1: 表示传递的名称   参数2: 是参数名称的解释  参数3: 传递到形式参数的变量
+@manager.option('-t', '--test', dest='test')
+def add_test_user(test):
+    # 用户容器
+    user_list = []
+
+    for i in range(0, 1000):
+        # 创建用户
+        user = User()
+
+        # 设置属性
+        user.nick_name = "老王%d" % i
+        user.mobile = "138%08d" % i
+
+        # 从数据库中直接拷贝了一份hash密码，不然1000条数据，电脑加密的话很慢
+        # user.password = "%06d" % i
+        user.password_hash = "pbkdf2:sha256:50000$fFsb9UYQ$8985c9338515c7dbd6a245a978ca90d7262e21b30f20535d0737bc2fae9e5ef9"
+
+        # 设置随机,设置最后登陆时间, 在31天内的随机登陆时间
+        user.last_login = datetime.now() - timedelta(seconds=random.randint(0, 3600 * 24 * 31))
+
+        # 添加用户到容器中
+        user_list.append(user)
+
+    # 添加到数据库
+    try:
+        db.session.add_all(user_list)
+        db.session.commit()
+    except Exception as e:
+        return "添加失败"
+
+    return "添加成功"
 
 
 if __name__ == '__main__':
