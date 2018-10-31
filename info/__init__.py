@@ -1,16 +1,16 @@
 import logging
 from logging.handlers import RotatingFileHandler
 
-from flask import Flask,session
-from flask_session import Session #指定session存储位置
+from flask import Flask, session, render_template, g
+from flask_session import Session  # 指定session存储位置
 from flask_sqlalchemy import SQLAlchemy
 import redis
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import generate_csrf
 from config import config_dict
 
-#定义redis_store
-from info.utils.commons import index_class
+# 定义redis_store
+from info.utils.commons import index_class, user_login_data
 
 redis_store = None
 
@@ -18,9 +18,8 @@ redis_store = None
 # db = None
 db = SQLAlchemy()
 
+
 def create_app(config_name):
-
-
     app = Flask(__name__)
 
     # 根据传入的config_name,取出对应的运行环境
@@ -59,24 +58,32 @@ def create_app(config_name):
     from info.modules.news import news_blue
     app.register_blueprint(news_blue)
 
-    #将用户蓝图对象user_blue注册到app中
+    # 将用户蓝图对象user_blue注册到app中
     from info.modules.user import user_blue
     app.register_blueprint(user_blue)
 
     # 将过滤器,添加到默认过滤器列表中
-    app.add_template_filter(index_class,"index_class")
+    app.add_template_filter(index_class, "index_class")
+
+    # 捕捉404错误信息
+    @app.errorhandler(404)
+    @user_login_data
+    def page_not_found(e):
+        data = {"user_info": g.user.to_dict() if g.user else ""}
+        return render_template("news/404.html", data=data)
 
     # 使用请求钩子,after_request拦截所有响应
     @app.after_request
     def after_request(resp):
         value = generate_csrf()
-        resp.set_cookie("csrf_token",value)
+        resp.set_cookie("csrf_token", value)
         return resp
 
     print(app.url_map)
     return app
 
-#日志记录方法
+
+# 日志记录方法
 def log_file(LEVEL):
     # 设置日志的记录等级, 常见的日志有: DEBUG < INFO < WARING < ERROR
     logging.basicConfig(level=LEVEL)  # 调试debug级
