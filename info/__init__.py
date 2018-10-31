@@ -62,6 +62,10 @@ def create_app(config_name):
     from info.modules.user import user_blue
     app.register_blueprint(user_blue)
 
+    # 将管理员蓝图对象admin_blue注册到app中
+    from info.modules.admin import admin_blue
+    app.register_blueprint(admin_blue)
+
     # 将过滤器,添加到默认过滤器列表中
     app.add_template_filter(index_class, "index_class")
 
