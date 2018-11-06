@@ -83,7 +83,7 @@ def news_list():
     """
 
     try:
-        filters = []
+        filters = [News.status == 0]
         if cid != "1":
             filters.append(News.category_id == cid)
         paginate = News.query.filter(*filters).\
