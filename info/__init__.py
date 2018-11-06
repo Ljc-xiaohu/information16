@@ -99,3 +99,27 @@ def log_file(LEVEL):
     file_log_handler.setFormatter(formatter)
     # 为全局的日志工具对象（flask app使用的）添加日志记录器
     logging.getLogger().addHandler(file_log_handler)
+
+
+
+"""
+* csrf_token服务器内部校验过程:
+
+  * 1.表单提交
+    * 1.在表单中携带,隐藏的csrf_token,加密的  (自己设置)
+    * 2.在cookie中,设置一个sessionID  (服务器设置)
+    * 在提交的时候,服务器校验过程:
+      * 1.取出表单中的csrf_token, 使用SECRET_KEY,进行解密, 得到未加密的csrf_token
+      * 2.通过sessionID取出,服务器内部的session空间中的,未加密的csrf_token
+      * 比较二者的值是否相等,如果相等则校验通过
+
+  * 2.非表单提交, ajax提交
+    - 1.在headers中设置csrf_token,加密的  (自己设置,详情见information16/info/static/news/js/detail.js中359行代码 ),
+        来自于cookie中的 (我们自己设置的,详情见本页83行代码)
+    - 2.在cookie中,设置一个sessionID  (服务器设置)
+    - 在提交的时候,服务器校验过程:
+      - 1.取出headers中的csrf_token, 使用SECRET_KEY   (详情见information16/config.py 中第8行代码),
+        进行解密, 得到未加密的csrf_token
+      - 2.通过sessionID取出,服务器内部的session空间中的,未加密的csrf_token
+      - 比较二者的值是否相等,如果相等则校验通过
+"""
